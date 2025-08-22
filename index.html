@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bulk Mail Sender — Pro Artistic UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui"],
+            display: ["Space Grotesk", "ui-sans-serif", "system-ui"],
+          },
+          colors: {
+            ink: {
+              900: "#0b0f19",
+              700: "#111827",
+            },
+          },
+          boxShadow: {
+            soft: "0 20px 60px -15px rgba(0,0,0,0.35)",
+            glow: "0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px -10px rgba(99,102,241,0.4)",
+          },
+          animation: {
+            float: "float 9s ease-in-out infinite",
+            float2: "float2 11s ease-in-out infinite",
+            blob: "blob 18s linear infinite",
+            shimmer: "shimmer 2.2s linear infinite",
+            fadeUp: "fadeUp .6s ease forwards",
+          },
+          keyframes: {
+            float: {
+              "0%": { transform: "translateY(0px)" },
+              "50%": { transform: "translateY(-12px)" },
+              "100%": { transform: "translateY(0px)" },
+            },
+            float2: {
+              "0%": { transform: "translateY(0px)" },
+              "50%": { transform: "translateY(10px)" },
+              "100%": { transform: "translateY(0px)" },
+            },
+            blob: {
+              "0%": { transform: "translate(0,0) scale(1)" },
+              "33%": { transform: "translate(15px,-25px) scale(1.05)" },
+              "66%": { transform: "translate(-10px,20px) scale(0.95)" },
+              "100%": { transform: "translate(0,0) scale(1)" },
+            },
+            shimmer: {
+              "0%": { backgroundPosition: "-200% 0" },
+              "100%": { backgroundPosition: "200% 0" },
+            },
+            fadeUp: {
+              from: { opacity: 0, transform: "translateY(8px)" },
+              to: { opacity: 1, transform: "translateY(0)" },
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root{ color-scheme: light dark; }
+    body{ font-synthesis-weight:none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    /* Glass + grain */
+    .glass{ background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)); backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,.12); }
+    .noise::after{ content:""; position: absolute; inset: 0; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 100 100"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity=".06"/></svg>'); pointer-events:none; mix-blend-mode:overlay; }
+    .grid-bg{ background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0); background-size: 22px 22px; }
+    .gradient-ring{ position: relative; }
+    .gradient-ring::before{ content:""; position:absolute; inset:-2px; border-radius: 24px; padding:1px; background: linear-gradient(120deg, #6366f1, #22d3ee, #a855f7, #6366f1); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: hue 12s linear infinite; }
+    @keyframes hue{ to{ filter: hue-rotate(360deg); } }
+    /* Fancy button */
+    .btn-shimmer{ background: linear-gradient(110deg, rgba(255,255,255,.15) 0%, rgba(255,255,255,.05) 40%, rgba(255,255,255,.25) 55%, rgba(255,255,255,.05) 100%); background-size: 200% 100%; }
+    /* Tilt */
+    .tilt:hover{ transform: perspective(900px) rotateX(3deg) rotateY(-3deg) translateY(-2px); }
+    /* Chips scroll */
+    .chips::-webkit-scrollbar{ height: 8px; }
+    .chips::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.2); border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen bg-ink-900 text-white relative overflow-x-hidden">
+  <!-- Background layers -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
+    <div class="absolute -top-40 -left-20 w-[36rem] h-[36rem] rounded-full bg-gradient-to-tr from-indigo-600/40 via-cyan-400/40 to-fuchsia-500/40 blur-3xl opacity-60 animate-blob"></div>
+    <div class="absolute -bottom-40 -right-20 w-[40rem] h-[40rem] rounded-full bg-gradient-to-tr from-fuchsia-500/35 via-purple-500/30 to-indigo-600/35 blur-3xl opacity-60 animate-blob" style="animation-delay: -6s"></div>
+    <div class="absolute inset-0 grid-bg opacity-[.15]"></div>
+  </div>
+
+  <!-- Top nav -->
+  <header class="sticky top-0 z-40">
+    <div class="mx-auto max-w-6xl px-4 py-4">
+      <div class="glass noise relative rounded-2xl px-4 py-3 flex items-center justify-between shadow-soft">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 shadow-glow flex items-center justify-center animate-float">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
+          </div>
+          <div>
+            <p class="font-display text-xl tracking-tight">Mail Sender</p>
+            <p class="text-xs text-white/60">Bulk outreach. Refined aesthetics.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="themeToggle" class="px-3 py-2 rounded-xl glass hover:shadow-glow transition">Toggle Theme</button>
+          <a href="#form" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition shadow-glow">Compose</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="mx-auto max-w-6xl px-4 pb-24 pt-8">
+    <div class="relative grid gap-6 md:grid-cols-[1.05fr_.95fr]">
+
+      <!-- Left: live preview & stats -->
+      <section class="relative glass noise rounded-3xl p-6 md:p-8 shadow-soft transition-transform">
+        <div class="flex items-start justify-between gap-4">
+          <div class="space-y-1">
+            <h2 class="font-display text-2xl">Campaign Overview</h2>
+            <p class="text-white/60">A quick peek before you hit send.</p>
+          </div>
+          <div class="rounded-2xl px-3 py-2 text-xs bg-white/5 border border-white/10 animate-float2">v2 UI</div>
+        </div>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-3">
+          <div class="gradient-ring rounded-3xl p-[1px]">
+            <div class="rounded-[22px] bg-ink-700/40 px-4 py-4">
+              <p class="text-xs text-white/60">Recipients</p>
+              <p class="mt-1 text-3xl font-bold" id="statRecipients">0</p>
+              <p class="text-xs text-white/40">Unique emails detected</p>
+            </div>
+          </div>
+          <div class="gradient-ring rounded-3xl p-[1px]">
+            <div class="rounded-[22px] bg-ink-700/40 px-4 py-4">
+              <p class="text-xs text-white/60">Subject Length</p>
+              <p class="mt-1 text-3xl font-bold" id="statSubject">0</p>
+              <p class="text-xs text-white/40">Characters</p>
+            </div>
+          </div>
+          <div class="gradient-ring rounded-3xl p-[1px]">
+            <div class="rounded-[22px] bg-ink-700/40 px-4 py-4">
+              <p class="text-xs text-white/60">Message</p>
+              <p class="mt-1 text-3xl font-bold" id="statMessage">0</p>
+              <p class="text-xs text-white/40">Characters</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chips preview -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-white/70">Preview emails</p>
+            <span id="email-count" class="text-xs text-white/50">0 emails</span>
+          </div>
+          <div id="chips" class="chips mt-3 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/5 p-3">
+            <!-- chips inserted here -->
+          </div>
+          <p id="dedupeNote" class="mt-2 hidden text-xs text-emerald-300/80">Duplicates removed automatically.</p>
+        </div>
+
+        <!-- Progress bar aesthetic -->
+        <div class="mt-8">
+          <div class="text-xs text-white/60 mb-1">Send Readiness</div>
+          <div class="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+            <div id="readinessBar" class="h-full w-0 rounded-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-fuchsia-500 transition-[width] duration-700"></div>
+          </div>
+          <p id="readinessText" class="mt-1 text-xs text-white/50">Add recipients, subject and message…</p>
+        </div>
+
+      </section>
+
+      <!-- Right: form -->
+      <section id="form" class="relative glass noise rounded-3xl p-6 md:p-8 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="font-display text-2xl">Compose Mail</h2>
+            <p class="text-white/60">Enter details and we’ll handle the rest.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
+              Live preview
+            </span>
+          </div>
+        </div>
+
+        <form id="mail-form" class="mt-6 space-y-6">
+          <!-- Recipient Emails -->
+          <div>
+            <label for="emails" class="mb-2 block text-sm text-white/80">Recipient Emails</label>
+            <p class="text-xs text-white/50 mb-2">Separated by commas, spaces, or new lines. CSV paste supported.</p>
+            <textarea id="emails" name="emails" rows="4" class="w-full resize-y rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/40 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/30" placeholder="user1@example.com, user2@example.com…"></textarea>
+          </div>
+
+          <!-- Subject -->
+          <div>
+            <label for="subject" class="mb-2 block text-sm text-white/80">Subject</label>
+            <div class="relative">
+              <input id="subject" name="subject" type="text" class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 outline-none placeholder:text-white/40 focus:border-indigo-400/50 focus:ring-2 focus:ring-indigo-400/30" placeholder="e.g., Weekly Newsletter" />
+              <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-60">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M10 8h8M10 12h8M10 16h8M6 8h.01M6 12h.01M6 16h.01"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message Body -->
+          <div>
+            <label for="message" class="mb-2 block text-sm text-white/80">Message</label>
+            <textarea id="message" name="message" rows="8" class="w-full resize-y rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-white/40 focus:border-fuchsia-400/50 focus:ring-2 focus:ring-fuchsia-400/30" placeholder="Compose your email here…"></textarea>
+            <div class="mt-2 flex items-center justify-between text-xs text-white/50">
+              <span>Supports plain text.</span>
+              <span id="messageCount">0 / 5000</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-between gap-4 pt-2">
+            <div class="flex items-center gap-3 text-xs text-white/60">
+              <label class="inline-flex items-center gap-2">
+                <input id="dedupeToggle" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/5" checked />
+                Dedupe emails
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input id="validateToggle" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/5" checked />
+                Validate format
+              </label>
+            </div>
+
+            <button type="submit" id="send-button" class="relative overflow-hidden rounded-2xl bg-indigo-600 px-6 py-3 font-semibold shadow-glow transition hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
+              <span id="button-text" class="relative z-[1] flex items-center gap-2">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                Send Mail
+              </span>
+              <div id="button-spinner" class="absolute inset-0 hidden btn-shimmer animate-shimmer"></div>
+            </button>
+          </div>
+        </form>
+
+        <!-- Footer note -->
+        <p class="mt-6 text-center text-[11px] text-white/40">Your data stays on this page until you submit. Make sure your backend is running.</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 p-4">
+    <div class="relative w-full max-w-md rounded-3xl bg-ink-700/80 p-6 shadow-soft glass noise">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400/15" id="modal-icon">
+        <svg class="h-6 w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3 id="modal-title" class="mt-4 text-center text-lg font-semibold">Success!</h3>
+      <p id="modal-message" class="mt-2 text-center text-sm text-white/70"></p>
+      <button id="close-modal" class="mt-6 w-full rounded-2xl bg-indigo-600 px-4 py-2 font-medium shadow-glow hover:bg-indigo-500">Close</button>
+    </div>
+  </div>
+
+  <!-- Libraries for flair -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-f9J1k1w0Q5Lz2eaeP9gT4F1CqQ0sJbO4u5i5vY7WfXb2o6a9W2b1T8h0O2q7c4d5h6t7u8v9w0x1y2z3A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    // ======= CONFIG =======
+    const BACKEND_URL = 'http://localhost:3000/send-email';
+
+    // ======= ELEMENTS =======
+    const mailForm = document.getElementById('mail-form');
+    const emailsInput = document.getElementById('emails');
+    const subjectInput = document.getElementById('subject');
+    const messageInput = document.getElementById('message');
+    const emailCountEl = document.getElementById('email-count');
+    const chipsWrap = document.getElementById('chips');
+
+    const statRecipients = document.getElementById('statRecipients');
+    const statSubject = document.getElementById('statSubject');
+    const statMessage = document.getElementById('statMessage');
+
+    const readinessBar = document.getElementById('readinessBar');
+    const readinessText = document.getElementById('readinessText');
+
+    const messageCount = document.getElementById('messageCount');
+
+    const dedupeToggle = document.getElementById('dedupeToggle');
+    const validateToggle = document.getElementById('validateToggle');
+
+    const sendButton = document.getElementById('send-button');
+    const buttonText = document.getElementById('button-text');
+    const buttonSpinner = document.getElementById('button-spinner');
+
+    const modal = document.getElementById('modal');
+    const modalIcon = document.getElementById('modal-icon');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const closeModalBtn = document.getElementById('close-modal');
+
+    const dedupeNote = document.getElementById('dedupeNote');
+    const themeToggle = document.getElementById('themeToggle');
+
+    // ======= HELPERS =======
+    const emailRegex = /[^\s,;]+@[^\s,;]+\.[^\s,;]+/i;
+    const parseEmails = (raw) => raw
+      .replace(/[\n\t]+/g, ',')
+      .split(/[\s,;]+/)
+      .map(e => e.trim())
+      .filter(Boolean);
+
+    const dedupe = (arr) => [...new Set(arr.map(e => e.toLowerCase()))];
+
+    const validOnly = (arr) => arr.filter(e => emailRegex.test(e));
+
+    const randomBadge = () => {
+      const hues = [200, 230, 260, 280, 320, 170, 40];
+      const h = hues[Math.floor(Math.random() * hues.length)];
+      return `hsl(${h} 80% 55% / .18)`;
+    };
+
+    const initials = (email) => email[0]?.toUpperCase() ?? '?';
+
+    const updateChips = () => {
+      let emails = parseEmails(emailsInput.value);
+      const before = emails.length;
+      if (dedupeToggle.checked) emails = dedupe(emails);
+      if (validateToggle.checked) emails = validOnly(emails);
+
+      chipsWrap.innerHTML = '';
+      emails.slice(0, 30).forEach(e => {
+        const el = document.createElement('span');
+        el.className = 'inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs';
+        const badge = document.createElement('span');
+        badge.className = 'grid h-5 w-5 place-items-center rounded-lg text-[10px] font-bold text-white/80';
+        badge.style.background = randomBadge();
+        badge.textContent = initials(e);
+        const label = document.createElement('span');
+        label.textContent = e;
+        el.appendChild(badge);
+        el.appendChild(label);
+        chipsWrap.appendChild(el);
+      });
+      if (emails.length > 30) {
+        const more = document.createElement('span');
+        more.className = 'inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70';
+        more.textContent = `+${emails.length - 30} more`;
+        chipsWrap.appendChild(more);
+      }
+
+      emailCountEl.textContent = `${emails.length} email${emails.length !== 1 ? 's' : ''}`;
+      statRecipients.textContent = emails.length;
+      dedupeNote.classList.toggle('hidden', !(dedupeToggle.checked && before !== emails.length));
+
+      updateReadiness();
+    };
+
+    const updateCounts = () => {
+      statSubject.textContent = subjectInput.value.length;
+      statMessage.textContent = messageInput.value.length;
+      messageCount.textContent = `${messageInput.value.length} / 5000`;
+      updateReadiness();
+    };
+
+    const updateReadiness = () => {
+      const recipients = Number(statRecipients.textContent);
+      const subjectLen = subjectInput.value.trim().length;
+      const messageLen = messageInput.value.trim().length;
+      let score = 0;
+      if (recipients > 0) score += 34;
+      if (subjectLen > 3) score += 33;
+      if (messageLen > 10) score += 33;
+      readinessBar.style.width = `${score}%`;
+      readinessText.textContent = score === 100 ? 'Looks good! Ready to send.' : 'Add recipients, subject and message…';
+    };
+
+    const setLoadingState = (isLoading) => {
+      if (isLoading) {
+        sendButton.disabled = true;
+        buttonText.classList.add('opacity-0');
+        buttonSpinner.classList.remove('hidden');
+      } else {
+        sendButton.disabled = false;
+        buttonText.classList.remove('opacity-0');
+        buttonSpinner.classList.add('hidden');
+      }
+    };
+
+    const showModal = (title, message, type = 'success') => {
+      modalTitle.textContent = title;
+      modalMessage.innerHTML = message;
+      modalIcon.className = 'mx-auto flex h-12 w-12 items-center justify-center rounded-full ' + (type === 'success' ? 'bg-emerald-400/15' : 'bg-rose-400/15');
+      modalIcon.innerHTML = type === 'success'
+        ? '<svg class="h-6 w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+        : '<svg class="h-6 w-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      if (type === 'success') burstConfetti();
+    };
+
+    const burstConfetti = () => {
+      try {
+        const end = Date.now() + 400;
+        (function frame() {
+          confetti({ particleCount: 3, spread: 70, origin: { y: 0.6 } });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+      } catch (_) { /* noop */ }
+    };
+
+    // ======= EVENTS =======
+    emailsInput.addEventListener('input', updateChips);
+    subjectInput.addEventListener('input', updateCounts);
+    messageInput.addEventListener('input', updateCounts);
+
+    // CSV paste cleaner
+    emailsInput.addEventListener('paste', (e) => {
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      if (text && text.includes(',')) {
+        setTimeout(updateChips, 0);
+      }
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    });
+    window.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+
+    // Theme toggle (light/dark flair)
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('light');
+      document.body.classList.toggle('bg-white');
+      document.body.classList.toggle('text-ink-900');
+    });
+
+    // Tilt micro-interaction
+    document.querySelectorAll('.tilt').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const rotateY = ((x / rect.width) - 0.5) * -6;
+        const rotateX = ((y / rect.height) - 0.5) * 6;
+        card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+
+    // Entrance animations
+    window.addEventListener('load', () => {
+      gsap.from('header .glass', { y: -20, opacity: 0, duration: .6, ease: 'power2.out' });
+      gsap.from('main section', { y: 16, opacity: 0, duration: .7, stagger: .08, ease: 'power2.out' });
+    });
+
+    // ======= SUBMIT =======
+    mailForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      let emails = parseEmails(emailsInput.value);
+      if (dedupeToggle.checked) emails = dedupe(emails);
+      if (validateToggle.checked) emails = validOnly(emails);
+
+      const subject = subjectInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (emails.length === 0) { showModal('Validation Error', 'Please enter at least one valid recipient email address.', 'error'); return; }
+      if (!subject) { showModal('Validation Error', 'The subject line cannot be empty.', 'error'); return; }
+      if (!message) { showModal('Validation Error', 'The message body cannot be empty.', 'error'); return; }
+
+      setLoadingState(true);
+
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emails, subject, message }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'An unknown server error occurred.');
+
+        showModal('Success!', result.message || 'Emails queued for delivery.');
+        mailForm.reset();
+        updateChips();
+        updateCounts();
+      } catch (error) {
+        console.error('Submission error:', error);
+        showModal('Request Failed', `Could not send email. Please ensure the backend server is running. <br><br><strong>Error:</strong> ${error.message}`, 'error');
+      } finally {
+        setLoadingState(false);
+      }
+    });
+
+    // Initial
+    updateChips();
+    updateCounts();
+  </script>
+</body>
+</html>
